@@ -12,8 +12,14 @@ ENV MSMTP_LOGFILE=/var/log/msmtp.log
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
     DEBIAN_FRONTEND=noninteractive \
-    apt-get update && apt-get dist-upgrade -y && apt-get install msmtp rsync gettext-base --no-install-recommends -y
-   
+    sed -i "s/^Components: main$/Components: main contrib non-free non-free-firmware/" /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
+    apt-get dist-upgrade -y && \
+    apt-get install msmtp rsync gettext-base imagemagick ghostscript --no-install-recommends -y && \
+    sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/' /etc/ImageMagick-6/policy.xml
+
+# it would be nice to also include php-imagick, but that wont install on this image
+
 COPY tree/ /
 ENTRYPOINT ["entrypoint-override.sh"]
 CMD ["apache2-foreground"]
