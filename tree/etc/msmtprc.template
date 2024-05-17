@@ -1,0 +1,13 @@
+account default
+domain $MSMTP_DOMAIN
+host $MSMTP_MAILHOST
+port $MSMTP_PORT
+tls $MSMTP_TLS
+tls_starttls $MSMTP_STARTTLS
+#tls_trust_file /etc/ssl/certs/ca-certificates.crt
+tls_certcheck $MSMTP_TLS_CERTCHECK
+auth $MSMTP_AUTH
+user $MSMTP_USER
+password $MSMTP_PASSWORD
+from $MSMTP_FROM
+logfile $MSMTP_LOGFILE
