@@ -4,7 +4,7 @@ pipeline {
     environment {
         // TARGET_REPO = 
         // TARGET_REPO_CREDENTIALS = 
-        DOCKER_IMAGE_NAME = 'deadlyninja/wordpress-fpm-msmtp'
+        DOCKER_IMAGE_NAME = 'deadlyninja/php-apache-bookworm-msmtp'
         DOCKERFILE_PATH = './Dockerfile'
     }
    
