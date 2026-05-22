@@ -9,8 +9,8 @@ ENV MSMTP_FROM=mailer
 ENV MSMTP_PORT=25
 ENV MSMTP_LOGFILE=/var/log/msmtp.log
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    --mount=type=cache,target=/var/lib/apt \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
+    --mount=type=cache,target=/var/lib/apt,sharing=private \
     DEBIAN_FRONTEND=noninteractive \
     sed -i "s/^Components: main$/Components: main contrib non-free non-free-firmware/" /etc/apt/sources.list.d/debian.sources && \
     apt-get update && \
