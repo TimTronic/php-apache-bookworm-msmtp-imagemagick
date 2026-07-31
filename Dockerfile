@@ -27,5 +27,15 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
 # it would be nice to also include php-imagick, but that wont install on this image
 
 COPY tree/ /
+
+# COPY stamps the build checkout's directory modes straight onto the image, so the result
+# depends on the umask of whoever built it. A clone made with umask 002 gives tree/etc and
+# tree/usr mode 774, which lands on / etc and /usr and leaves them non-traversable for
+# www-data: PHP can then no longer read /etc/resolv.conf or /etc/nsswitch.conf, and every
+# hostname lookup fails with "Temporary failure in name resolution" - a symptom that looks
+# nothing like a permissions problem. Jenkins happens to check out with umask 022 and so
+# has never hit it. Pin the modes rather than depending on the builder.
+RUN chmod 0755 /etc /usr /usr/local /usr/local/bin /usr/local/etc /usr/local/etc/php /usr/local/etc/php/conf.d
+
 ENTRYPOINT ["entrypoint-override.sh"]
 CMD ["apache2-foreground"]
