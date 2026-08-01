@@ -17,12 +17,18 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
     apt-get dist-upgrade -y && \
     apt-get install msmtp rsync gettext-base imagemagick ghostscript libpq-dev --no-install-recommends -y && \
     sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/' /etc/ImageMagick-6/policy.xml && \
-    docker-php-ext-install pdo_pgsql pgsql
+    docker-php-ext-install pdo_pgsql pgsql && \
+    docker-php-ext-enable opcache
 
 # PostgreSQL: the image shipped with pdo_sqlite only, so a PHP page could not reach a
 # Postgres container at all. libpq-dev is what docker-php-ext-install builds against; it
 # is left in place rather than purged because it pulls libpq5, which the extensions need
 # at runtime anyway, and the headers are a few megabytes.
+#
+# OPcache ships with the image but was never enabled, so every request recompiled every
+# file it touched from source - on a PHP site that is most of the work of serving a page.
+# The default validate_timestamps=1 is kept deliberately: the beta container bind-mounts
+# the working tree, and an edit has to take effect on the next request without a restart.
 
 # it would be nice to also include php-imagick, but that wont install on this image
 
