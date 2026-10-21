@@ -1,5 +1,10 @@
 FROM php:apache-bookworm
 
+# Require the emergency PHP fixes even while upstream images are still rebuilding.
+COPY update-php-security.sh /usr/local/sbin/update-php-security
+RUN sh /usr/local/sbin/update-php-security 8.5.12 08bc2eba2a588654ade1357174aa646b761556c862dda0678345ee29ed481209
+ENV PHP_SECURITY_MIN_VERSION=8.5.12
+
 ENV MSMTP_MAILHOST=mailserver
 ENV MSMTP_TLS=off
 ENV MSMTP_STARTTLS=off
