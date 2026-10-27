@@ -29,13 +29,28 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
     ! grep -q 'rights="none" pattern="PDF"' /etc/ImageMagick-*/policy.xml && \
     docker-php-ext-install pdo_pgsql pgsql
 
+# Both of the above are the point of this image for the sites that use Postgres, and
+# OPcache is easy to lose silently to an ini that got overwritten or an extension that
+# stopped being built. Fail the build here rather than ship an image that quietly lost one.
+RUN php -m | grep -qi '^pdo_pgsql$' \
+    && php -m | grep -qi '^pgsql$' \
+    && php -m | grep -qi 'opcache' \
+    || (echo 'ERROR: expected pdo_pgsql, pgsql and opcache; got:' >&2; php -m >&2; exit 1)
+
 # PostgreSQL: the image shipped with pdo_sqlite only, so a PHP page could not reach a
 # Postgres container at all. libpq-dev is what docker-php-ext-install builds against; it
 # is left in place rather than purged because it pulls libpq5, which the extensions need
 # at runtime anyway, and the headers are a few megabytes.
 #
-# OPcache ships with the image but was never enabled, so every request recompiled every
-# file it touched from source - on a PHP site that is most of the work of serving a page.
+# OPcache needs no line of its own any more. It used to ship as an unenabled opcache.so and
+# this file called `docker-php-ext-enable opcache`; current php:apache-bookworm compiles
+# Zend OPcache into the binary with opcache.enable=On already, and the extension directory
+# holds only sodium.so. So `enable` fails with "error: 'opcache' does not exist" and
+# `install` fails with "cp: cannot stat 'modules/*'" - between them that is why no build
+# has reached the registry since OPcache was added. The RUN below asserts it is really
+# loaded, so if a future base image drops it again the build says so instead of quietly
+# going back to recompiling every file on every request.
+#
 # The default validate_timestamps=1 is kept deliberately: the beta container bind-mounts
 # the working tree, and an edit has to take effect on the next request without a restart.
 
