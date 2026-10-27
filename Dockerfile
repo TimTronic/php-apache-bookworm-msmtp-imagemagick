@@ -1,4 +1,6 @@
-FROM php:apache-bookworm
+# Debian 13 (trixie), the current stable. The image keeps its "bookworm" name
+# because every site's compose file pulls it by that name.
+FROM php:apache-trixie
 
 # Require the emergency PHP fixes even while upstream images are still rebuilding.
 COPY update-php-security.sh /usr/local/sbin/update-php-security
@@ -21,7 +23,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=private \
     apt-get update && \
     apt-get dist-upgrade -y && \
     apt-get install msmtp rsync gettext-base imagemagick ghostscript libpq-dev --no-install-recommends -y && \
-    sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/' /etc/ImageMagick-6/policy.xml && \
+    for policy in /etc/ImageMagick-*/policy.xml; do \
+        sed -i 's/<policy domain="coder" rights="none" pattern="PDF" \/>/<policy domain="coder" rights="read|write" pattern="PDF" \/>/' "$policy"; \
+    done && \
+    ! grep -q 'rights="none" pattern="PDF"' /etc/ImageMagick-*/policy.xml && \
     docker-php-ext-install pdo_pgsql pgsql
 
 # PostgreSQL: the image shipped with pdo_sqlite only, so a PHP page could not reach a

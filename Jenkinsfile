@@ -10,6 +10,8 @@ pipeline {
 
     triggers {
         pollSCM('H/15 * * * *')
+        // Daily rebuild so base-image security fixes (PHP, Debian) land without a commit.
+        cron('H H(2-4) * * *')
     }
 
     stages {
